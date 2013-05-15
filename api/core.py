@@ -1,4 +1,4 @@
-from .util import transform_to_images
+from .util import transform_to_image
 
 
 class XMLDiff(object):
@@ -26,4 +26,5 @@ class XMLDiff(object):
         old_slides = self.get_old_slides()
         new_slides = self.get_new_slides()
         changed_slides = self.get_changed_slides(old_slides, new_slides)
-        return transform_to_images(changed_slides)
+        return [(transform_to_image(x), transform_to_image(y))
+                for x, y in changed_slides]
