@@ -27,9 +27,39 @@ class XMLDiff(object):
 
         for index, tree in enumerate(doc.content_types.getTreesFor(doc, contenttypes.CT_PRESENTATION_SLIDE)):
             slide_id = tree.xpath('//p14:creationId/@val', namespaces={'p14': 'http://schemas.microsoft.com/office/powerpoint/2010/main'})[0]
-            slide_dict[slide_id] = index
+            slide_dict[slide_id] = (index, tree)
 
         return slide_dict
+
+    def get_slide_changes(self, old_slides, new_slides):
+        """
+        returns {
+            'modified': [id1, id2],
+            'deleted': [id3],
+            'created': [id4, id5]
+        }
+        """
+
+        change_dict = {}
+
+        old_ids = set(old_slides.keys())
+        new_ids = set(new_slides.keys())
+
+        change_dict['deleted'] = old_ids.difference(new_ids)
+        change_dict['created'] = new_ids.difference(old_ids)
+
+        # Get modified slide ids
+        candidates = old_ids.intersection(new_ids)
+        modified = []
+        for _id in candidates:
+            _, old_xml = old_slides.get(_id)
+            _, new_xml = new_slides.get(_id)
+            if not etree.tostring(old_xml) == etree.tostring(new_xml):
+                modified.append(_id)
+
+        change_dict['modified'] = set(modified)
+
+        return change_dict
 
     def get_diff(self):
         """
@@ -49,8 +79,14 @@ class XMLDiff(object):
         slide 7 has been created
         """
         old_slides = self.get_slides(self.prev)
+        new_slides = self.get_slides(self.head)
+        print "Old slides"
         print old_slides
-        # new_slides = self.get_slides(self.head)
-        # changed_slides = self.get_changed_slides(old_slides, new_slides)
+
+        print "New slides"
+        print new_slides
+
+        slide_changes = self.get_slide_changes(old_slides, new_slides)
+        print slide_changes
         # return [(transform_to_image(x), transform_to_image(y))
         #         for x, y in changed_slides]
