@@ -16,6 +16,12 @@ class XMLDiff(object):
         self.head = head
 
     def get_slides(self, file_path):
+        """
+        '/some/path' -> {
+            '1826322': (0, <lxml.etree._ElementTree object at 0x10884fd40>),
+            '9126312': (1, <lxml.etree._ElementTree object at 0x10884fd40>)
+        }
+        """
 
         doc = openxmllib.openXmlDocument(file_path)
 
@@ -33,10 +39,10 @@ class XMLDiff(object):
 
     def get_slide_changes(self, old_slides, new_slides):
         """
-        returns {
-            'modified': [id1, id2],
-            'deleted': [id3],
-            'created': [id4, id5]
+        -> {
+            'modified': set([id1, id2]),
+            'deleted': set([id3]),
+            'created': set([id4, id5])
         }
         """
 
@@ -54,6 +60,8 @@ class XMLDiff(object):
         for _id in candidates:
             _, old_xml = old_slides.get(_id)
             _, new_xml = new_slides.get(_id)
+
+            # Compare string representation of xml tree
             if not etree.tostring(old_xml) == etree.tostring(new_xml):
                 modified.append(_id)
 
