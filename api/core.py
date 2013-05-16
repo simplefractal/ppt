@@ -23,8 +23,13 @@ class XMLDiff(object):
         raw_xml = xmlFile(ct_file, 'rb')
         doc.content_types = contenttypes.ContentTypes(raw_xml)
 
-        for tree in doc.content_types.getTreesFor(doc, "application/vnd.openxmlformats-officedocument.presentationml.slide+xml"):
-            print etree.tostring(tree)
+        slide_dict = {}
+
+        for index, tree in enumerate(doc.content_types.getTreesFor(doc, contenttypes.CT_PRESENTATION_SLIDE)):
+            slide_id = tree.xpath('//p14:creationId/@val', namespaces={'p14': 'http://schemas.microsoft.com/office/powerpoint/2010/main'})[0]
+            slide_dict[slide_id] = index
+
+        return slide_dict
 
     def get_diff(self):
         """
@@ -44,6 +49,7 @@ class XMLDiff(object):
         slide 7 has been created
         """
         old_slides = self.get_slides(self.prev)
+        print old_slides
         # new_slides = self.get_slides(self.head)
         # changed_slides = self.get_changed_slides(old_slides, new_slides)
         # return [(transform_to_image(x), transform_to_image(y))
